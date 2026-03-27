@@ -62,18 +62,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ processed: 0, results: [] });
   }
 
-  // Process max 3 configs per invocation to spread load across cron runs
-  const batchLimit = 3;
-  const batch = dueConfigs.slice(0, batchLimit);
-
+  // Process all due configs (cron runs every 6h on Hobby plan)
   const results = [];
 
-  for (let i = 0; i < batch.length; i++) {
-    const config = batch[i];
+  for (let i = 0; i < dueConfigs.length; i++) {
+    const config = dueConfigs[i];
 
-    // Random delay between requests (500ms - 3000ms) to avoid burst patterns
+    // Random delay between requests (300ms - 1500ms) to avoid burst patterns
     if (i > 0) {
-      await randomDelay(500, 3000);
+      await randomDelay(300, 1500);
     }
     const startTime = Date.now();
 
@@ -168,7 +165,6 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     processed: results.length,
-    remaining: dueConfigs.length - batch.length,
     timestamp: now,
     results,
   });
