@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     return (
       <div>
         <Navbar />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-6 sm:py-8">
           <p className="text-destructive font-bold uppercase tracking-wider animate-pulse">
             [!] ERROR LOADING CONFIGURATIONS: {error.message}
           </p>
@@ -36,9 +36,9 @@ export default async function DashboardPage() {
   return (
     <div>
       <Navbar />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6 sm:py-8">
         <DashboardHeader />
-        <div className="border-2 border-border bg-card/50 p-4">
+        <div className="border-2 border-border bg-card/50 p-3 sm:p-4">
           <ConfigTable configs={configs} />
         </div>
         <DashboardFooter configsCount={configs.length} activeCount={configs.filter(c => c.enabled).length} />
