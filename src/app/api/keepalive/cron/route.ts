@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  executeAndLogKeepalive,
+  isConfigDue,
+  toKeepaliveResult,
+} from "@/lib/keepalive";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -47,16 +52,7 @@ export async function GET(request: Request) {
 
   // Filter configs by their individual interval with random jitter (±20%)
   // This prevents all configs from being pinged at the exact same time
-  const dueConfigs = shuffleArray(
-    (configs || []).filter((config) => {
-      if (!config.last_attempt_at) return true;
-      const lastAttempt = new Date(config.last_attempt_at).getTime();
-      const intervalMs = config.interval_seconds * 1000;
-      // Add random jitter: ±20% of interval
-      const jitter = intervalMs * 0.2 * (Math.random() * 2 - 1);
-      return Date.now() - lastAttempt >= intervalMs + jitter;
-    })
-  );
+  const dueConfigs = shuffleArray((configs || []).filter(isConfigDue));
 
   if (dueConfigs.length === 0) {
     return NextResponse.json({ processed: 0, results: [] });
@@ -72,92 +68,15 @@ export async function GET(request: Request) {
     if (i > 0) {
       await randomDelay(300, 1500);
     }
-    const startTime = Date.now();
-
     try {
-      // Build headers
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        ...(config.keepalive_headers || {}),
-      };
-
-      // Build fetch options
-      const fetchOptions: RequestInit = {
-        method: config.keepalive_method,
-        headers,
-        signal: AbortSignal.timeout(10000),
-      };
-
-      if (config.keepalive_method === "POST" && config.keepalive_body) {
-        fetchOptions.body =
-          typeof config.keepalive_body === "string"
-            ? config.keepalive_body
-            : JSON.stringify(config.keepalive_body);
-      }
-
-      const response = await fetch(config.keepalive_endpoint_url, fetchOptions);
-      const durationMs = Date.now() - startTime;
-
-      // Read response excerpt (max 500 chars)
-      let responseExcerpt: string | null = null;
-      try {
-        const text = await response.text();
-        responseExcerpt = text.slice(0, 500);
-      } catch {
-        responseExcerpt = null;
-      }
-
-      // Log the attempt
-      await supabase.from("keepalive_logs").insert({
-        config_id: config.id,
-        status_code: response.status,
-        response_excerpt: responseExcerpt,
-        duration_ms: durationMs,
-      });
-
-      // Update config timestamps
-      const updateData: Record<string, string> = {
-        last_attempt_at: now,
-      };
-      if (response.ok) {
-        updateData.last_success_at = now;
-      }
-
-      await supabase
-        .from("connection_configs")
-        .update(updateData)
-        .eq("id", config.id);
-
-      results.push({
-        config_id: config.id,
-        alias: config.alias_email,
-        status: response.status,
-        duration_ms: durationMs,
-        success: response.ok,
-      });
+      const result = await executeAndLogKeepalive(supabase, config, now);
+      results.push(toKeepaliveResult(config, result));
     } catch (err) {
-      const durationMs = Date.now() - startTime;
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error";
-
-      // Log the error
-      await supabase.from("keepalive_logs").insert({
-        config_id: config.id,
-        error_message: errorMessage,
-        duration_ms: durationMs,
-      });
-
-      // Update last_attempt_at
-      await supabase
-        .from("connection_configs")
-        .update({ last_attempt_at: now })
-        .eq("id", config.id);
-
       results.push({
         config_id: config.id,
         alias: config.alias_email,
-        error: errorMessage,
-        duration_ms: durationMs,
+        error: err instanceof Error ? err.message : "Unknown error",
+        duration_ms: 0,
         success: false,
       });
     }
