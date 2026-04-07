@@ -137,7 +137,7 @@ export function ConfigForm({ initialData, configId }: ConfigFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="mx-auto w-full max-w-2xl">
       <CardHeader>
         <CardTitle>
           {isEditing ? t("modifyConfig") : t("newConfig")}
@@ -215,7 +215,7 @@ export function ConfigForm({ initialData, configId }: ConfigFormProps) {
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary uppercase tracking-wider hover:text-accent"
+                className="absolute right-3 top-3 text-xs text-primary uppercase tracking-wider hover:text-accent sm:top-1/2 sm:-translate-y-1/2"
                 onClick={() => setShowServiceRole(!showServiceRole)}
               >
                 [{showServiceRole ? t("hide") : t("show")}]
@@ -326,8 +326,8 @@ export function ConfigForm({ initialData, configId }: ConfigFormProps) {
             </p>
           )}
 
-          <div className="flex gap-2">
-            <Button type="submit" variant="terminal" disabled={loading}>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button type="submit" variant="terminal" disabled={loading} className="w-full sm:w-auto">
               {loading
                 ? t("processing")
                 : isEditing
@@ -338,6 +338,7 @@ export function ConfigForm({ initialData, configId }: ConfigFormProps) {
               type="button"
               variant="outline"
               onClick={() => router.push("/dashboard")}
+              className="w-full sm:w-auto"
             >
               {t("cancel")}
             </Button>

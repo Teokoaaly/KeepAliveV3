@@ -58,12 +58,12 @@ export function AuthForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="mx-auto w-full max-w-md">
       <div className="flex justify-end p-2">
         <LanguageSelector />
       </div>
       <CardHeader>
-        <CardTitle>{mode === "login" ? t("loginTitle") : t("registerTitle")}</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">{mode === "login" ? t("loginTitle") : t("registerTitle")}</CardTitle>
         <CardDescription>
           {mode === "login" ? t("loginDesc") : t("registerDesc")}
         </CardDescription>
@@ -113,7 +113,7 @@ export function AuthForm() {
             {loading ? t("processing") : mode === "login" ? t("loginBtn") : t("registerBtn")}
           </Button>
         </form>
-        <div className="mt-4 text-center text-sm uppercase tracking-wider">
+          <div className="mt-4 text-center text-xs uppercase tracking-wider sm:text-sm">
           {mode === "login" ? (
             <>
               {t("noAccount")}{" "}
