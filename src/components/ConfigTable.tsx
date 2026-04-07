@@ -144,6 +144,74 @@ export function ConfigTable({ configs }: ConfigTableProps) {
 
   return (
     <>
+      <div className="space-y-3 md:hidden">
+        {configs.map((config) => (
+          <div key={config.id} className="space-y-3 border-2 border-border bg-background/70 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="break-words font-mono text-sm text-primary">{config.alias_email}</p>
+                  {config.has_service_role && (
+                    <Badge variant="terminal" className="text-[10px]">
+                      [SR]
+                    </Badge>
+                  )}
+                </div>
+                <p className="break-all font-mono text-[11px] text-muted-foreground">
+                  {config.keepalive_endpoint_url}
+                </p>
+              </div>
+              <div className="shrink-0">{getStatusBadge(config)}</div>
+            </div>
+
+            <div className="grid gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+              <p><span className="text-primary">{t("lastPing")}:</span> {formatRelativeTime(config.last_success_at)}</p>
+              <p><span className="text-primary">{t("interval")}:</span> {config.interval_seconds}S</p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("enabled")}</span>
+                <Switch
+                  checked={config.enabled}
+                  onCheckedChange={(checked) => toggleEnabled(config.id, checked)}
+                  disabled={loading === config.id}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 xs:grid-cols-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => runOnce(config.id)}
+                disabled={loading === config.id}
+                className="w-full text-xs"
+              >
+                {t("ping")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => router.push(`/dashboard/${config.id}`)}
+                className="w-full text-xs"
+              >
+                {t("edit")}
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => setDeleteId(config.id)}
+                className="w-full text-xs xs:col-span-2"
+              >
+                {t("del")}
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden md:block">
       <Table>
         <TableHeader>
           <TableRow>
@@ -220,6 +288,7 @@ export function ConfigTable({ configs }: ConfigTableProps) {
           ))}
         </TableBody>
       </Table>
+      </div>
 
       <Dialog
         open={!!deleteId}
@@ -227,11 +296,11 @@ export function ConfigTable({ configs }: ConfigTableProps) {
         title={t("deleteConfig")}
         description={t("deleteWarning")}
       >
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => setDeleteId(null)}>
+        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={() => setDeleteId(null)} className="w-full sm:w-auto">
             {t("cancel")}
           </Button>
-          <Button variant="destructive" onClick={deleteConfig}>
+          <Button variant="destructive" onClick={deleteConfig} className="w-full sm:w-auto">
             {t("confirmDelete")}
           </Button>
         </div>

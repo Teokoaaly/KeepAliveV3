@@ -35,7 +35,7 @@ export default async function EditConfigPage({
   return (
     <div>
       <Navbar />
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto space-y-6 px-4 py-6 sm:space-y-8 sm:py-8">
         <EditConfigHeader aliasEmail={config.alias_email} />
 
         <ConfigForm

@@ -84,10 +84,10 @@ export default function StatsPage() {
     return (
       <div>
         <Navbar />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-6 sm:py-8">
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-4 text-primary uppercase tracking-wider">LOADING DATA...</span>
+            <span className="ml-4 text-xs text-primary uppercase tracking-wider sm:text-sm">LOADING DATA...</span>
           </div>
         </main>
       </div>
@@ -98,7 +98,7 @@ export default function StatsPage() {
     return (
       <div>
         <Navbar />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-6 sm:py-8">
           <Card>
             <CardContent className="py-8">
               <p className="text-destructive text-center font-bold uppercase tracking-wider animate-pulse">
@@ -118,12 +118,12 @@ export default function StatsPage() {
   return (
     <div>
       <Navbar />
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto space-y-6 px-4 py-6 sm:space-y-8 sm:py-8">
         <div>
-          <h1 className="text-3xl font-bold text-primary glow-text uppercase tracking-[3px]">
+          <h1 className="text-2xl font-bold text-primary glow-text uppercase tracking-[2px] sm:text-3xl sm:tracking-[3px]">
             {t("statsTitle")}
           </h1>
-          <p className="text-muted-foreground mt-2 uppercase tracking-wider">
+          <p className="mt-2 text-sm text-muted-foreground uppercase tracking-wider sm:text-base">
             {t("statsSubtitle")}
           </p>
         </div>
@@ -147,7 +147,7 @@ export default function StatsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-2">
               <KeepaliveStatsChart data={stats.dailyStats} />
               <SuccessRateChart
                 successful={stats.overview.successfulPings}
@@ -168,7 +168,7 @@ export default function StatsPage() {
                 <CardTitle>{t("responseTime")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground uppercase tracking-wider">
                       {t("avgResponse")}

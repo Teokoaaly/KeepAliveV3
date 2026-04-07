@@ -7,8 +7,8 @@ export function LogsCardHeader() {
   const { t } = useLanguage();
 
   return (
-    <CardHeader>
-      <CardTitle>{t("keepaliveLogs")}</CardTitle>
-    </CardHeader>
+      <CardHeader>
+        <CardTitle className="text-base sm:text-xl">{t("keepaliveLogs")}</CardTitle>
+      </CardHeader>
   );
 }

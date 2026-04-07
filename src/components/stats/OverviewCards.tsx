@@ -36,7 +36,7 @@ export function OverviewCards({
     totalPings > 0 ? ((successfulPings / totalPings) * 100).toFixed(1) : "0"
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-bold uppercase tracking-wider">
@@ -45,7 +45,7 @@ export function OverviewCards({
           <Server className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary glow-text">{totalConfigs}</div>
+          <div className="break-words text-2xl font-bold text-primary glow-text">{totalConfigs}</div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">
             {activeConfigs} {t("active")} {totalConfigs} {t("totalConfigs")}
           </p>
@@ -60,7 +60,7 @@ export function OverviewCards({
           <Activity className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary glow-text">{totalPings.toLocaleString()}</div>
+          <div className="break-words text-2xl font-bold text-primary glow-text">{totalPings.toLocaleString()}</div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">
             {successfulPings.toLocaleString()} {t("successful")} /{" "}
             {failedPings.toLocaleString()} {t("failed")}
@@ -80,7 +80,7 @@ export function OverviewCards({
           )}
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary glow-text">{successRate}%</div>
+          <div className="break-words text-2xl font-bold text-primary glow-text">{successRate}%</div>
           <Badge
             variant={
               Number(successRate) >= 95
@@ -107,7 +107,7 @@ export function OverviewCards({
           <Zap className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary glow-text">{avgResponseTime}MS</div>
+          <div className="break-words text-2xl font-bold text-primary glow-text">{avgResponseTime}MS</div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">
             {t("totalPings")}
           </p>
@@ -122,7 +122,7 @@ export function OverviewCards({
           <Server className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary glow-text">{vercelProjects}</div>
+          <div className="break-words text-2xl font-bold text-primary glow-text">{vercelProjects}</div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">
             {t("vercelUsage")}
           </p>

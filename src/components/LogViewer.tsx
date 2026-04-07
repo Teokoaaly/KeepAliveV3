@@ -41,7 +41,39 @@ export function LogViewer({ logs }: LogViewerProps) {
   }
 
   return (
-    <Table>
+    <>
+      <div className="space-y-3 md:hidden">
+        {logs.map((log) => (
+          <div key={log.id} className="space-y-2 border border-border bg-background/60 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <p className="min-w-0 break-all font-mono text-[11px] text-muted-foreground">
+                {new Date(log.attempted_at).toISOString()}
+              </p>
+              <div className="shrink-0">
+                {log.error_message ? (
+                  <Badge variant="destructive">[ERR]</Badge>
+                ) : log.status_code && log.status_code < 400 ? (
+                  <Badge variant="success">[{log.status_code}]</Badge>
+                ) : (
+                  <Badge variant="destructive">[{log.status_code || "N/A"}]</Badge>
+                )}
+              </div>
+            </div>
+            <p className="font-mono text-[11px] uppercase tracking-wider text-primary">
+              {t("duration")}: {log.duration_ms !== null ? `${log.duration_ms}MS` : "-"}
+            </p>
+            <p className="break-words font-mono text-[11px] text-destructive">
+              {log.error_message || "-"}
+            </p>
+            <p className="break-words font-mono text-[11px] text-muted-foreground">
+              {log.response_excerpt || "-"}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden md:block">
+      <Table>
       <TableHeader>
         <TableRow>
           <TableHead>{t("timestamp")}</TableHead>
@@ -80,6 +112,8 @@ export function LogViewer({ logs }: LogViewerProps) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+      </Table>
+      </div>
+    </>
   );
 }
