@@ -20,28 +20,28 @@ export function Navbar() {
 
   return (
     <nav className="border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/dashboard" className="text-xl font-bold text-primary glow-text tracking-[3px] uppercase">
+      <div className="container mx-auto flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
+        <Link href="/dashboard" className="max-w-full text-lg font-bold text-primary glow-text tracking-[2px] uppercase sm:text-xl sm:tracking-[3px]">
           {t("appName")}
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end sm:gap-4">
           <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="uppercase tracking-wider">
+            <Button variant="ghost" size="sm" className="min-h-9 w-full uppercase tracking-wider sm:w-auto">
               [{t("dashboard")}]
             </Button>
           </Link>
           <Link href="/dashboard/stats">
-            <Button variant="ghost" size="sm" className="uppercase tracking-wider">
+            <Button variant="ghost" size="sm" className="min-h-9 w-full uppercase tracking-wider sm:w-auto">
               [{t("stats")}]
             </Button>
           </Link>
           <Link href="/dashboard/wizard">
-            <Button variant="ghost" size="sm" className="uppercase tracking-wider">
+            <Button variant="ghost" size="sm" className="min-h-9 w-full uppercase tracking-wider sm:w-auto">
               [{t("wizard")}]
             </Button>
           </Link>
           <LanguageSelector />
-          <Button variant="terminal" size="sm" onClick={handleLogout}>
+          <Button variant="terminal" size="sm" onClick={handleLogout} className="min-h-9 w-full sm:w-auto">
             [{t("logout")}]
           </Button>
         </div>

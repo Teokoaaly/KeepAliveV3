@@ -7,12 +7,12 @@ export function LanguageSelector() {
   const { lang, setLang } = useLanguage();
 
   return (
-    <div className="flex items-center gap-1 border border-border px-1">
+    <div className="flex items-center gap-1 border border-border px-1 py-1">
       <Button
         variant="ghost"
         size="sm"
         onClick={() => setLang("en")}
-        className={`text-xs px-2 py-1 h-auto ${
+        className={`h-auto min-h-8 px-2 py-1 text-xs ${
           lang === "en"
             ? "text-primary bg-primary/10"
             : "text-muted-foreground"
@@ -24,7 +24,7 @@ export function LanguageSelector() {
         variant="ghost"
         size="sm"
         onClick={() => setLang("es")}
-        className={`text-xs px-2 py-1 h-auto ${
+        className={`h-auto min-h-8 px-2 py-1 text-xs ${
           lang === "es"
             ? "text-primary bg-primary/10"
             : "text-muted-foreground"
