@@ -271,7 +271,7 @@ export function SetupWizard() {
 
   if (success) {
     return (
-      <Card className="max-w-2xl mx-auto">
+      <Card className="mx-auto max-w-2xl bg-card/95">
         <CardContent className="py-12">
           <div className="flex flex-col items-center gap-4">
             <div className="p-3 border-2 border-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
@@ -291,21 +291,24 @@ export function SetupWizard() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-primary glow-text uppercase tracking-[3px]">
+    <div className="mx-auto max-w-3xl space-y-5 sm:space-y-8">
+      <div className="space-y-3 border-2 border-border bg-card/70 p-4 sm:p-5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-accent sm:text-xs">
+          [MOBILE SETUP FLOW]
+        </p>
+        <h1 className="text-2xl font-bold text-primary glow-text uppercase tracking-[2px] sm:text-3xl sm:tracking-[3px]">
           {t("setupWizard")}
         </h1>
-        <p className="text-muted-foreground uppercase tracking-wider">
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground uppercase tracking-wider sm:text-base">
           {t("wizardDesc")}
         </p>
       </div>
 
       <StepIndicator steps={steps} currentStep={currentStep} />
 
-      <Card>
+      <Card className="bg-card/90">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2 text-base sm:text-xl">
             {currentStep === 0 && <Server className="h-5 w-5" />}
             {currentStep === 1 && <Zap className="h-5 w-5" />}
             {currentStep === 2 && <Globe className="h-5 w-5" />}
@@ -323,11 +326,11 @@ export function SetupWizard() {
 
           {currentStep === 0 && (
             <div className="space-y-4">
-              <div className="p-4 bg-secondary border border-border">
+              <div className="border-2 border-border bg-secondary/60 p-4 sm:p-5">
                 <h3 className="font-bold mb-2 uppercase tracking-wider text-primary">
                   {t("howToGetCredentials")}
                 </h3>
-                <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside uppercase tracking-wider">
+                 <ol className="list-inside list-decimal space-y-2 text-xs leading-relaxed text-muted-foreground uppercase tracking-wider sm:text-sm">
                   <li>{t("step1")}</li>
                   <li>{t("step2")}</li>
                   <li>{t("step3")}</li>
@@ -379,9 +382,9 @@ export function SetupWizard() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="anon" className="text-sm font-bold uppercase tracking-wider text-primary">
+                <label htmlFor="anon" className="flex flex-wrap items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
                   {t("anonKeyRequired")}{" "}
-                  <Badge variant="outline" className="text-xs">{t("badgePublic")}</Badge>
+                  <Badge variant="outline" className="text-[10px] sm:text-xs">{t("badgePublic")}</Badge>
                 </label>
                 <Input
                   id="anon"
@@ -395,9 +398,9 @@ export function SetupWizard() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="service" className="text-sm font-bold uppercase tracking-wider text-primary">
+                <label htmlFor="service" className="flex flex-wrap items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
                   {t("serviceRoleOptional")}{" "}
-                  <Badge variant="secondary" className="text-xs">{t("badgeOptional")}</Badge>
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs">{t("badgeOptional")}</Badge>
                 </label>
                 <Input
                   id="service"
@@ -415,11 +418,11 @@ export function SetupWizard() {
 
           {currentStep === 1 && (
             <div className="space-y-4">
-              <div className="p-4 bg-secondary border border-border">
+              <div className="border-2 border-border bg-secondary/60 p-4 sm:p-5">
                 <h3 className="font-bold mb-2 uppercase tracking-wider text-primary">
                   {t("keepaliveConfiguration")}
                 </h3>
-                <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                <p className="text-sm leading-relaxed text-muted-foreground uppercase tracking-wider">
                   {t("keepaliveDesc")}
                 </p>
               </div>
@@ -462,9 +465,9 @@ export function SetupWizard() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="headers" className="text-sm font-bold uppercase tracking-wider text-primary">
+                <label htmlFor="headers" className="flex flex-wrap items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
                   {t("customHeadersLabel")}{" "}
-                  <Badge variant="outline" className="text-xs">{t("badgeJsonOptional")}</Badge>
+                  <Badge variant="outline" className="text-[10px] sm:text-xs">{t("badgeJsonOptional")}</Badge>
                 </label>
                 <textarea
                   id="headers"
@@ -480,9 +483,9 @@ export function SetupWizard() {
 
               {data.keepaliveMethod === "POST" && (
                 <div className="space-y-2">
-                  <label htmlFor="body" className="text-sm font-bold uppercase tracking-wider text-primary">
+                  <label htmlFor="body" className="flex flex-wrap items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
                     {t("requestBodyLabel")}{" "}
-                    <Badge variant="outline" className="text-xs">{t("badgeJsonOptional")}</Badge>
+                    <Badge variant="outline" className="text-[10px] sm:text-xs">{t("badgeJsonOptional")}</Badge>
                   </label>
                   <textarea
                     id="body"
@@ -497,9 +500,9 @@ export function SetupWizard() {
               )}
 
               <div className="space-y-2">
-                <label htmlFor="interval" className="text-sm font-bold uppercase tracking-wider text-primary">
+                <label htmlFor="interval" className="flex flex-wrap items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
                   {t("intervalLabel")}{" "}
-                  <Badge variant="outline" className="text-xs">{t("badgeMinDefault")}</Badge>
+                  <Badge variant="outline" className="text-[10px] sm:text-xs">{t("badgeMinDefault")}</Badge>
                 </label>
                 <Input
                   id="interval"
@@ -520,20 +523,20 @@ export function SetupWizard() {
 
           {currentStep === 2 && (
             <div className="space-y-4">
-              <div className="p-4 bg-secondary border border-border">
+              <div className="border-2 border-border bg-secondary/60 p-4 sm:p-5">
                 <h3 className="font-bold mb-2 uppercase tracking-wider text-primary">
                   {t("connectVercel")}
                 </h3>
-                <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                <p className="text-sm leading-relaxed text-muted-foreground uppercase tracking-wider">
                   {t("vercelDesc")}
                 </p>
               </div>
 
-              <div className="p-4 border-2 border-border">
+              <div className="border-2 border-border bg-background/60 p-4">
                 <h4 className="font-bold mb-2 uppercase tracking-wider text-primary">
                   {t("howToGetToken")}
                 </h4>
-                <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside uppercase tracking-wider">
+                <ol className="list-inside list-decimal space-y-2 text-xs leading-relaxed text-muted-foreground uppercase tracking-wider sm:text-sm">
                   <li>{t("vercelStep1")}</li>
                   <li>{t("vercelStep2")}</li>
                   <li>{t("vercelStep3")}</li>
@@ -541,9 +544,9 @@ export function SetupWizard() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="vercel-token" className="text-sm font-bold uppercase tracking-wider text-primary">
+                <label htmlFor="vercel-token" className="flex flex-wrap items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
                   {t("vercelToken")}{" "}
-                  <Badge variant="secondary" className="text-xs">{t("badgeOptional2")}</Badge>
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs">{t("badgeOptional2")}</Badge>
                 </label>
                 <Input
                   id="vercel-token"
@@ -556,9 +559,9 @@ export function SetupWizard() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="vercel-team" className="text-sm font-bold uppercase tracking-wider text-primary">
+                <label htmlFor="vercel-team" className="flex flex-wrap items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
                   {t("teamId")}{" "}
-                  <Badge variant="secondary" className="text-xs">{t("badgeTeamsOnly")}</Badge>
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs">{t("badgeTeamsOnly")}</Badge>
                 </label>
                 <Input
                   id="vercel-team"
@@ -581,43 +584,43 @@ export function SetupWizard() {
 
           {currentStep === 3 && (
             <div className="space-y-6">
-              <div className="p-4 bg-secondary border border-border">
+              <div className="border-2 border-border bg-secondary/60 p-4 sm:p-5">
                 <h3 className="font-bold mb-2 uppercase tracking-wider text-primary">
                   {t("configSummary")}
                 </h3>
-                <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                <p className="text-sm leading-relaxed text-muted-foreground uppercase tracking-wider">
                   {t("reviewDesc")}
                 </p>
               </div>
 
               <div className="space-y-4">
-                <div className="border-2 border-border p-4">
+                <div className="border-2 border-border bg-background/60 p-4">
                   <h4 className="font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
                     <Server className="h-4 w-4" />
                     {t("supabaseConfiguration")}
                   </h4>
-                  <dl className="space-y-1 text-sm font-mono">
-                    <div className="flex justify-between">
+                   <dl className="space-y-2 text-sm font-mono">
+                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                       <dt className="text-muted-foreground uppercase">{t("alias")}:</dt>
                       <dd>{data.supabaseAlias}</dd>
                     </div>
-                    <div className="flex justify-between">
+                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                       <dt className="text-muted-foreground uppercase">{t("email")}:</dt>
                       <dd>{data.contactEmail}</dd>
                     </div>
-                    <div className="flex justify-between">
+                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                       <dt className="text-muted-foreground uppercase">URL:</dt>
-                      <dd className="truncate max-w-[200px]">
+                       <dd className="break-all sm:max-w-[200px] sm:truncate">
                         {data.supabaseUrl}
                       </dd>
                     </div>
-                    <div className="flex justify-between">
+                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                       <dt className="text-muted-foreground uppercase">{t("anonKey")}:</dt>
-                      <dd className="truncate max-w-[200px]">
+                       <dd className="break-all sm:max-w-[200px] sm:truncate">
                         {data.supabaseAnonKey.slice(0, 20)}...
                       </dd>
                     </div>
-                    <div className="flex justify-between">
+                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                       <dt className="text-muted-foreground uppercase">
                         {t("serviceRoleKey")}:
                       </dt>
@@ -632,23 +635,23 @@ export function SetupWizard() {
                   </dl>
                 </div>
 
-                <div className="border-2 border-border p-4">
+                <div className="border-2 border-border bg-background/60 p-4">
                   <h4 className="font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
                     <Zap className="h-4 w-4" />
                     {t("keepaliveConfigurationTitle")}
                   </h4>
-                  <dl className="space-y-1 text-sm font-mono">
-                    <div className="flex justify-between">
+                   <dl className="space-y-2 text-sm font-mono">
+                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                       <dt className="text-muted-foreground uppercase">{t("endpoint")}:</dt>
-                      <dd className="truncate max-w-[200px]">
+                       <dd className="break-all sm:max-w-[200px] sm:truncate">
                         {data.keepaliveEndpointUrl}
                       </dd>
                     </div>
-                    <div className="flex justify-between">
+                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                       <dt className="text-muted-foreground uppercase">METHOD:</dt>
                       <dd>{data.keepaliveMethod}</dd>
                     </div>
-                    <div className="flex justify-between">
+                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                       <dt className="text-muted-foreground uppercase">{t("interval")}:</dt>
                       <dd>{data.intervalSeconds}S</dd>
                     </div>
@@ -656,20 +659,20 @@ export function SetupWizard() {
                 </div>
 
                 {data.vercelToken && (
-                  <div className="border-2 border-border p-4">
+                  <div className="border-2 border-border bg-background/60 p-4">
                     <h4 className="font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
                       <Globe className="h-4 w-4" />
                       {t("vercelConfiguration")}
                     </h4>
-                    <dl className="space-y-1 text-sm font-mono">
-                      <div className="flex justify-between">
+                     <dl className="space-y-2 text-sm font-mono">
+                       <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                         <dt className="text-muted-foreground uppercase">TOKEN:</dt>
                         <dd>
                           <Badge variant="terminal" className="text-xs">{t("configured")}</Badge>
                         </dd>
                       </div>
                       {data.vercelTeamId && (
-                        <div className="flex justify-between">
+                         <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                           <dt className="text-muted-foreground uppercase">TEAM ID:</dt>
                           <dd>{data.vercelTeamId}</dd>
                         </div>
@@ -681,23 +684,24 @@ export function SetupWizard() {
             </div>
           )}
 
-          <div className="flex justify-between pt-4">
+          <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:justify-between">
             <Button
               variant="outline"
               onClick={handleBack}
               disabled={currentStep === 0 || loading}
+              className="w-full sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("back")}
             </Button>
 
             {currentStep < steps.length - 1 ? (
-              <Button variant="terminal" onClick={handleNext} disabled={loading}>
+              <Button variant="terminal" onClick={handleNext} disabled={loading} className="w-full sm:w-auto">
                 {t("next")}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
-              <Button variant="terminal" onClick={handleSubmit} disabled={loading}>
+              <Button variant="terminal" onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto">
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
