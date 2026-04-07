@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { ConfigForm } from "@/components/ConfigForm";
 import { LogViewer } from "@/components/LogViewer";
 import { EditConfigHeader } from "@/components/EditConfigHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { LogsCardHeader } from "@/components/LogsCardHeader";
 
 export default async function EditConfigPage({

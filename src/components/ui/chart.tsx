@@ -2,6 +2,11 @@
 
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
+import type {
+  NameType,
+  ValueType,
+} from "recharts/types/component/DefaultTooltipContent"
+import type { TooltipContentProps } from "recharts/types/component/Tooltip"
 
 import { cn } from "@/lib/utils"
 
@@ -102,16 +107,18 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+type ChartTooltipContentProps = Partial<TooltipContentProps<ValueType, NameType>> &
+  React.ComponentProps<"div"> & {
+    hideLabel?: boolean
+    hideIndicator?: boolean
+    indicator?: "line" | "dot" | "dashed"
+    nameKey?: string
+    labelKey?: string
+  }
+
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-    React.ComponentProps<"div"> & {
-      hideLabel?: boolean
-      hideIndicator?: boolean
-      indicator?: "line" | "dot" | "dashed"
-      nameKey?: string
-      labelKey?: string
-    }
+  ChartTooltipContentProps
 >(
   (
     props,
@@ -131,7 +138,7 @@ const ChartTooltipContent = React.forwardRef<
       color,
       nameKey,
       labelKey,
-    } = props as any
+    } = props
     const { config } = useChart()
 
     const tooltipLabel = React.useMemo(() => {
@@ -186,14 +193,14 @@ const ChartTooltipContent = React.forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
-          {payload?.map((item: any, index: number) => {
+          {payload?.map((item, index: number) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
             const indicatorColor = color || item.payload.fill || item.color
 
             return (
               <div
-                key={item.dataKey}
+                key={typeof item.dataKey === "string" || typeof item.dataKey === "number" ? item.dataKey : key}
                 className={cn(
                   "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                   indicator === "dot" && "items-center"
@@ -287,13 +294,13 @@ const ChartLegendContent = React.forwardRef<
           className
         )}
       >
-        {payload?.map((item: any) => {
+        {payload?.map((item) => {
           const key = `${nameKey || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
           return (
             <div
-              key={item.value}
+              key={typeof item.value === "string" || typeof item.value === "number" ? item.value : String(key)}
               className={cn(
                 "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
               )}
@@ -304,7 +311,8 @@ const ChartLegendContent = React.forwardRef<
                 <div
                   className="h-2 w-2 shrink-0 rounded-[2px]"
                   style={{
-                    backgroundColor: item.color,
+                    backgroundColor:
+                      typeof item.color === "string" ? item.color : undefined,
                   }}
                 />
               )}

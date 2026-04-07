@@ -43,8 +43,6 @@ export function EndpointStatusChart({
   disabled,
   title = "ENDPOINT STATUS",
 }: EndpointStatusChartProps) {
-  const total = healthy + stale + disabled
-
   const data: EndpointStatusData[] = [
     { name: "healthy", value: healthy, fill: "var(--color-healthy)" },
     { name: "stale", value: stale, fill: "var(--color-stale)" },

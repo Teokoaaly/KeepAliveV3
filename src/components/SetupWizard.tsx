@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -84,6 +84,13 @@ export function SetupWizard() {
   const userEditedEndpoint = useRef(false)
   const userEditedHeaders = useRef(false)
 
+  const updateField = useCallback(<K extends keyof WizardData>(
+    field: K,
+    value: WizardData[K]
+  ) => {
+    setData((prev) => ({ ...prev, [field]: value }))
+  }, [])
+
   // Auto-fill endpoint and headers when entering step 1
   useEffect(() => {
     if (currentStep === 1 && data.supabaseUrl && data.supabaseAnonKey) {
@@ -103,14 +110,14 @@ export function SetupWizard() {
         updateField("keepaliveHeaders", autoHeaders)
       }
     }
-  }, [currentStep])
-
-  const updateField = <K extends keyof WizardData>(
-    field: K,
-    value: WizardData[K]
-  ) => {
-    setData((prev) => ({ ...prev, [field]: value }))
-  }
+  }, [
+    currentStep,
+    data.keepaliveEndpointUrl,
+    data.keepaliveHeaders,
+    data.supabaseAnonKey,
+    data.supabaseUrl,
+    updateField,
+  ])
 
   const validateStep = (step: number): boolean => {
     setError(null)
