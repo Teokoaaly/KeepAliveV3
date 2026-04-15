@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { decryptServiceRoleKey } from "@/lib/crypto";
 
 /**
  * Configuration for a keepalive connection.
@@ -15,6 +16,7 @@ export interface KeepaliveConfig {
   last_attempt_at?: string | null;
   anon_key?: string;
   supabase_url?: string;
+  service_role_key_encrypted?: string | null;
 }
 
 /**
@@ -46,6 +48,70 @@ export interface KeepaliveExecutionResult {
  */
 export interface KeepaliveRetryResult extends KeepaliveExecutionResult {
   retries: number;
+}
+
+function shouldFallbackToAuthHealth(
+  config: KeepaliveConfig,
+  result: KeepaliveExecutionResult
+) {
+  const normalizedEndpoint = config.keepalive_endpoint_url.replace(/\/+$/, "");
+  const normalizedSupabaseRest = config.supabase_url
+    ? `${config.supabase_url.replace(/\/+$/, "")}/rest/v1`
+    : null;
+  const isNetworkFailure =
+    result.statusCode === undefined &&
+    typeof result.error === "string" &&
+    /(ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|fetch failed)/i.test(
+      result.error
+    );
+
+  return (
+    !!config.supabase_url &&
+    (!config.service_role_key_encrypted &&
+      normalizedEndpoint === normalizedSupabaseRest &&
+      result.statusCode === 401) ||
+      isNetworkFailure
+  );
+}
+
+function toAuthHealthConfig(config: KeepaliveConfig): KeepaliveConfig {
+  const baseUrl = config.supabase_url!.replace(/\/+$/, "");
+  const anonKey = config.anon_key;
+
+  return {
+    ...config,
+    keepalive_endpoint_url: `${baseUrl}/auth/v1/health`,
+    keepalive_method: "GET",
+    keepalive_body: null,
+    keepalive_headers: anonKey
+      ? {
+          ...(config.keepalive_headers || {}),
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        }
+      : config.keepalive_headers,
+  };
+}
+
+async function resolveKeepaliveConfig(
+  config: KeepaliveConfig
+): Promise<KeepaliveConfig> {
+  if (!config.service_role_key_encrypted) {
+    return config;
+  }
+
+  const serviceRoleKey = await decryptServiceRoleKey(
+    config.service_role_key_encrypted
+  );
+
+  return {
+    ...config,
+    keepalive_headers: {
+      ...(config.keepalive_headers || {}),
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+    },
+  };
 }
 
 /**
@@ -99,7 +165,17 @@ export async function executeKeepalive(
     };
   } catch (err) {
     const durationMs = Date.now() - startTime;
-    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    const errorMessage =
+      err instanceof Error
+        ? (() => {
+            const causeCode =
+              typeof (err as Error & { cause?: { code?: string } }).cause?.code === "string"
+                ? (err as Error & { cause?: { code?: string } }).cause?.code
+                : null;
+
+            return causeCode ? `${err.message} (${causeCode})` : err.message;
+          })()
+        : "Unknown error";
 
     return {
       durationMs,
@@ -188,7 +264,13 @@ export async function executeAndLogKeepalive(
   config: KeepaliveConfig,
   timestamp = new Date().toISOString()
 ): Promise<KeepaliveExecutionResult> {
-  const result = await executeKeepalive(config);
+  const resolvedConfig = await resolveKeepaliveConfig(config);
+  let result = await executeKeepalive(resolvedConfig);
+
+  if (shouldFallbackToAuthHealth(resolvedConfig, result)) {
+    result = await executeKeepalive(toAuthHealthConfig(resolvedConfig));
+  }
+
   await logKeepaliveResult(supabase, config.id, result, timestamp);
   return result;
 }

@@ -11,9 +11,10 @@ export const config = {
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
      * - _next/image (image optimization files)
+     * - api (API routes handle auth inside each endpoint)
      * - favicon.ico (favicon file)
      * - api/keepalive/cron (cron endpoint, authenticated via secret header)
      */
-    "/((?!_next/static|_next/image|favicon.ico|api/keepalive/cron).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };

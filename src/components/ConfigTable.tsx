@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -27,20 +27,31 @@ interface ConnectionConfig {
   last_attempt_at: string | null;
   last_success_at: string | null;
   has_service_role: boolean;
+  manual_ping_token: string | null;
   created_at: string;
 }
 
 interface ConfigTableProps {
   configs: ConnectionConfig[];
+  renderedAt: number;
 }
 
-export function ConfigTable({ configs }: ConfigTableProps) {
+export function ConfigTable({ configs, renderedAt }: ConfigTableProps) {
   const router = useRouter();
   const { t } = useLanguage();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [now, setNow] = useState(renderedAt);
+
+  useEffect(() => {
+    setNow(Date.now());
+    const intervalId = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   const toggleEnabled = async (id: string, enabled: boolean) => {
+    setActionError(null);
     setLoading(id);
     try {
       const res = await fetch(`/api/configs/${id}`, {
@@ -59,6 +70,7 @@ export function ConfigTable({ configs }: ConfigTableProps) {
 
   const deleteConfig = async () => {
     if (!deleteId) return;
+    setActionError(null);
     try {
       const res = await fetch(`/api/configs/${deleteId}`, {
         method: "DELETE",
@@ -72,17 +84,44 @@ export function ConfigTable({ configs }: ConfigTableProps) {
   };
 
   const runOnce = async (id: string) => {
+    setActionError(null);
     setLoading(id);
     try {
+      const config = configs.find((item) => item.id === id);
+
+      if (!config?.manual_ping_token) {
+        throw new Error("ERROR: MISSING MANUAL PING AUTHORIZATION");
+      }
+
       const res = await fetch("/api/keepalive/run-once", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config_id: id }),
+        body: JSON.stringify({
+          config_id: id,
+          manual_ping_token: config.manual_ping_token,
+        }),
       });
-      if (!res.ok) throw new Error("Failed to run");
+      const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        const detailedError =
+          typeof data.error === "string" && data.error
+            ? data.error
+            : typeof data.response_excerpt === "string" && data.response_excerpt
+              ? data.response_excerpt
+              : t("operationFailed");
+
+        throw new Error(
+          res.status === 401 && data.error === "Unauthorized"
+            ? "ERROR: SESSION EXPIRED OR NOT AUTHENTICATED"
+            : detailedError
+        );
+      }
+
       router.refresh();
     } catch (err) {
       console.error(err);
+      setActionError(err instanceof Error ? err.message : t("operationFailed"));
     } finally {
       setLoading(null);
     }
@@ -95,7 +134,6 @@ export function ConfigTable({ configs }: ConfigTableProps) {
     if (!config.last_success_at && !config.last_attempt_at) {
       return <Badge variant="outline">{t("noData")}</Badge>;
     }
-    const now = Date.now();
     const intervalMs = config.interval_seconds * 1000;
     // Generous margin: 2x interval + 60s buffer for cron timing
     const marginMs = intervalMs * 2 + 60000;
@@ -119,7 +157,7 @@ export function ConfigTable({ configs }: ConfigTableProps) {
   const formatRelativeTime = (dateStr: string | null) => {
     if (!dateStr) return t("never");
     const date = new Date(dateStr);
-    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+    const seconds = Math.floor((now - date.getTime()) / 1000);
     if (seconds < 60) return `${seconds}${t("sAgo")}`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)}${t("mAgo")}`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}${t("hAgo")}`;
@@ -144,6 +182,12 @@ export function ConfigTable({ configs }: ConfigTableProps) {
 
   return (
     <>
+      {actionError && (
+        <p className="mb-4 text-sm font-bold uppercase tracking-wider text-destructive animate-pulse">
+          [!] {actionError}
+        </p>
+      )}
+
       <div className="space-y-3 md:hidden">
         {configs.map((config) => (
           <div key={config.id} className="space-y-3 border-2 border-border bg-background/70 p-4">

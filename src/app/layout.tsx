@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "SUPABASE_KEEPALIVE // SYSTEM v2.0",
   description:
     ">> Secure Supabase Instance Management Terminal <<",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
