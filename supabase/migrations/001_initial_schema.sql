@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS public.connection_configs (
 
     -- Control
     enabled BOOLEAN NOT NULL DEFAULT true,
-    interval_seconds INTEGER NOT NULL DEFAULT 300
-        CHECK (interval_seconds >= 60),
+    interval_seconds INTEGER NOT NULL DEFAULT 14400
+        CHECK (interval_seconds >= 60 AND interval_seconds <= 14400),
 
     -- Estado
     last_attempt_at TIMESTAMPTZ,

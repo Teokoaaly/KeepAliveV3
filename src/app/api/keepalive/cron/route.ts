@@ -21,70 +21,79 @@ function randomDelay(minMs: number, maxMs: number): Promise<void> {
 }
 
 export async function GET(request: Request) {
-  // Vercel Cron sends "x-vercel-cron: 1" header automatically.
-  // Also support CRON_SECRET for manual/local testing via Authorization header.
-  const isVercelCron = request.headers.get("x-vercel-cron") === "1";
-  const authHeader = request.headers.get("authorization");
-  const hasValidSecret =
-    process.env.CRON_SECRET &&
-    authHeader === `Bearer ${process.env.CRON_SECRET}`;
+  try {
+    // Vercel Cron sends a vercel-cron user agent. When CRON_SECRET is configured,
+    // Vercel also sends Authorization: Bearer <CRON_SECRET>.
+    const isVercelCron =
+      request.headers.get("x-vercel-cron") === "1" ||
+      request.headers.get("user-agent")?.includes("vercel-cron/1.0");
+    const authHeader = request.headers.get("authorization");
+    const hasValidSecret =
+      process.env.CRON_SECRET &&
+      authHeader === `Bearer ${process.env.CRON_SECRET}`;
 
-  if (!isVercelCron && !hasValidSecret) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    if (process.env.CRON_SECRET ? !hasValidSecret : !isVercelCron) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const supabase = createAdminClient();
-  const now = new Date().toISOString();
+    const supabase = createAdminClient();
+    const now = new Date().toISOString();
 
-  // Fetch all enabled configs (filtering by interval is done in JS below)
-  const { data: configs, error: fetchError } = await supabase
-    .from("connection_configs")
-    .select("*")
-    .eq("enabled", true)
-    .order("last_attempt_at", { ascending: true, nullsFirst: true });
+    // Fetch all enabled configs (filtering by interval is done in JS below)
+    const { data: configs, error: fetchError } = await supabase
+      .from("connection_configs")
+      .select("*")
+      .eq("enabled", true)
+      .order("last_attempt_at", { ascending: true, nullsFirst: true });
 
-  if (fetchError) {
+    if (fetchError) {
+      return NextResponse.json(
+        { error: `Failed to fetch configs: ${fetchError.message}` },
+        { status: 500 }
+      );
+    }
+
+    // Filter configs by their individual deterministic random interval.
+    // This prevents all configs from being pinged at the exact same time.
+    const dueConfigs = shuffleArray((configs || []).filter(isConfigDue));
+
+    if (dueConfigs.length === 0) {
+      return NextResponse.json({ processed: 0, results: [] });
+    }
+
+    // Process all due configs.
+    const results = [];
+
+    for (let i = 0; i < dueConfigs.length; i++) {
+      const config = dueConfigs[i];
+
+      // Random delay between requests (300ms - 1500ms) to avoid burst patterns
+      if (i > 0) {
+        await randomDelay(300, 1500);
+      }
+      try {
+        const result = await executeAndLogKeepalive(supabase, config, now);
+        results.push(toKeepaliveResult(config, result));
+      } catch (err) {
+        results.push({
+          config_id: config.id,
+          alias: config.alias_email,
+          error: err instanceof Error ? err.message : "Unknown error",
+          duration_ms: 0,
+          success: false,
+        });
+      }
+    }
+
+    return NextResponse.json({
+      processed: results.length,
+      timestamp: now,
+      results,
+    });
+  } catch (err) {
     return NextResponse.json(
-      { error: "Failed to fetch configs" },
+      { error: err instanceof Error ? err.message : "Cron failed" },
       { status: 500 }
     );
   }
-
-  // Filter configs by their individual interval with random jitter (±20%)
-  // This prevents all configs from being pinged at the exact same time
-  const dueConfigs = shuffleArray((configs || []).filter(isConfigDue));
-
-  if (dueConfigs.length === 0) {
-    return NextResponse.json({ processed: 0, results: [] });
-  }
-
-  // Process all due configs (cron runs every 6h on Hobby plan)
-  const results = [];
-
-  for (let i = 0; i < dueConfigs.length; i++) {
-    const config = dueConfigs[i];
-
-    // Random delay between requests (300ms - 1500ms) to avoid burst patterns
-    if (i > 0) {
-      await randomDelay(300, 1500);
-    }
-    try {
-      const result = await executeAndLogKeepalive(supabase, config, now);
-      results.push(toKeepaliveResult(config, result));
-    } catch (err) {
-      results.push({
-        config_id: config.id,
-        alias: config.alias_email,
-        error: err instanceof Error ? err.message : "Unknown error",
-        duration_ms: 0,
-        success: false,
-      });
-    }
-  }
-
-  return NextResponse.json({
-    processed: results.length,
-    timestamp: now,
-    results,
-  });
 }

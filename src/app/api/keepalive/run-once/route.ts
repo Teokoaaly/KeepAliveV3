@@ -5,67 +5,74 @@ import { executeAndLogKeepalive } from "@/lib/keepalive";
 import { verifyManualPingToken } from "@/lib/manual-ping-token";
 
 export async function POST(request: Request) {
-  const admin = createAdminClient();
-  let user: { id: string } | null = null;
-  let authorizedConfigId: string | null = null;
-
-  const authorization = request.headers.get("authorization");
-  const bearerToken = authorization?.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length)
-    : null;
-
-  if (bearerToken) {
-    const {
-      data: { user: bearerUser },
-      error: bearerError,
-    } = await admin.auth.getUser(bearerToken);
-
-    if (!bearerError && bearerUser) {
-      user = bearerUser;
-    }
-  }
-
-  const requestBody = await request.json().catch(() => null);
-
-  if (!requestBody || typeof requestBody.config_id !== "string") {
-    return NextResponse.json(
-      { error: "config_id is required" },
-      { status: 400 }
-    );
-  }
-
-  if (typeof requestBody.manual_ping_token === "string") {
-    const payload = verifyManualPingToken(requestBody.manual_ping_token);
-
-    if (payload && payload.configId === requestBody.config_id) {
-      user = { id: payload.userId };
-      authorizedConfigId = payload.configId;
-    }
-  }
-
-  if (!user) {
-    const supabase = await createClient();
-    const {
-      data: { user: cookieUser },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !cookieUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    user = cookieUser;
-  }
-
   try {
+    const admin = createAdminClient();
+    let user: { id: string } | null = null;
+    let authorizedConfigId: string | null = null;
+
+    const authorization = request.headers.get("authorization");
+    const bearerToken = authorization?.startsWith("Bearer ")
+      ? authorization.slice("Bearer ".length)
+      : null;
+
+    if (bearerToken) {
+      const {
+        data: { user: bearerUser },
+        error: bearerError,
+      } = await admin.auth.getUser(bearerToken);
+
+      if (!bearerError && bearerUser) {
+        user = bearerUser;
+      }
+    }
+
+    const requestBody = await request.json().catch(() => null);
+
+    if (!requestBody || typeof requestBody.config_id !== "string") {
+      return NextResponse.json(
+        { error: "config_id is required" },
+        { status: 400 }
+      );
+    }
+
+    if (typeof requestBody.manual_ping_token === "string") {
+      const payload = verifyManualPingToken(requestBody.manual_ping_token);
+
+      if (payload && payload.configId === requestBody.config_id) {
+        user = { id: payload.userId };
+        authorizedConfigId = payload.configId;
+      }
+    }
+
+    if (!user) {
+      const supabase = await createClient();
+      const {
+        data: { user: cookieUser },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !cookieUser) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      user = cookieUser;
+    }
+
     const configId = requestBody.config_id;
 
-    const { data: config } = await admin
+    const { data: config, error: configError } = await admin
       .from("connection_configs")
       .select("*")
       .eq("id", authorizedConfigId ?? configId)
       .eq("user_id", user.id)
       .single();
+
+    if (configError && configError.code !== "PGRST116") {
+      return NextResponse.json(
+        { error: "Failed to load configuration" },
+        { status: 500 }
+      );
+    }
 
     if (!config) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -76,15 +83,13 @@ export async function POST(request: Request) {
     try {
       const result = await executeAndLogKeepalive(admin, config, now);
 
-      const status = result.success ? 200 : result.statusCode ? result.statusCode : 502;
-
       return NextResponse.json({
         success: result.success,
         status: result.statusCode,
         duration_ms: result.durationMs,
         response_excerpt: result.responseExcerpt,
         error: result.error,
-      }, { status });
+      });
     } catch (err) {
       return NextResponse.json({
         success: false,
@@ -92,7 +97,9 @@ export async function POST(request: Request) {
         duration_ms: 0,
       }, { status: 500 });
     }
-  } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  } catch (err) {
+    return NextResponse.json({
+      error: err instanceof Error ? err.message : "Request failed",
+    }, { status: 500 });
   }
 }

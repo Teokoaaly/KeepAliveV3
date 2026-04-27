@@ -37,7 +37,7 @@ export function ConfigForm({ initialData, configId }: ConfigFormProps) {
     keepalive_method: initialData?.keepalive_method || "GET",
     keepalive_headers: initialData?.keepalive_headers || "{}",
     keepalive_body: initialData?.keepalive_body || "",
-    interval_seconds: initialData?.interval_seconds || 300,
+    interval_seconds: initialData?.interval_seconds || 14400,
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -314,9 +314,10 @@ export function ConfigForm({ initialData, configId }: ConfigFormProps) {
               min={60}
               value={formData.interval_seconds}
               onChange={(e) =>
-                updateField("interval_seconds", parseInt(e.target.value) || 300)
+                updateField("interval_seconds", parseInt(e.target.value) || 14400)
               }
               className="font-mono"
+              max={14400}
             />
           </div>
 

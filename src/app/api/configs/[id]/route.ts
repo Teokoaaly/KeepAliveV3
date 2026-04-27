@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { encryptServiceRoleKey } from "@/lib/crypto";
+import {
+  MAX_KEEPALIVE_INTERVAL_SECONDS,
+  MIN_KEEPALIVE_INTERVAL_SECONDS,
+} from "@/lib/keepalive";
 
 export async function GET(
   request: Request,
@@ -93,9 +97,13 @@ export async function PATCH(
             { status: 400 }
           );
         }
-        if (field === "interval_seconds" && body[field] < 60) {
+        if (
+          field === "interval_seconds" &&
+          (body[field] < MIN_KEEPALIVE_INTERVAL_SECONDS ||
+            body[field] > MAX_KEEPALIVE_INTERVAL_SECONDS)
+        ) {
           return NextResponse.json(
-            { error: "Interval must be at least 60 seconds" },
+            { error: "Interval must be between 60 seconds and 4 hours" },
             { status: 400 }
           );
         }

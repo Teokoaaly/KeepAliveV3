@@ -50,6 +50,49 @@ export interface KeepaliveRetryResult extends KeepaliveExecutionResult {
   retries: number;
 }
 
+export const MIN_KEEPALIVE_INTERVAL_SECONDS = 60;
+export const DEFAULT_KEEPALIVE_INTERVAL_SECONDS = 4 * 60 * 60;
+export const MAX_KEEPALIVE_INTERVAL_SECONDS = 4 * 60 * 60;
+const MIN_RANDOM_KEEPALIVE_INTERVAL_SECONDS = 60 * 60;
+
+function deterministicRandom(seed: string): number {
+  let hash = 2166136261;
+
+  for (let i = 0; i < seed.length; i++) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0) / 4294967295;
+}
+
+export function getKeepaliveDueIntervalSeconds(config: KeepaliveConfig): number {
+  const configuredMaxSeconds = Math.min(
+    Math.max(
+      Number.isFinite(config.interval_seconds)
+        ? config.interval_seconds
+        : DEFAULT_KEEPALIVE_INTERVAL_SECONDS,
+      MIN_KEEPALIVE_INTERVAL_SECONDS
+    ),
+    MAX_KEEPALIVE_INTERVAL_SECONDS
+  );
+
+  const minSeconds = Math.min(
+    configuredMaxSeconds,
+    MIN_RANDOM_KEEPALIVE_INTERVAL_SECONDS
+  );
+
+  if (configuredMaxSeconds <= minSeconds) {
+    return configuredMaxSeconds;
+  }
+
+  const seed = `${config.id}:${config.last_attempt_at ?? "never"}`;
+  const randomOffset =
+    deterministicRandom(seed) * (configuredMaxSeconds - minSeconds);
+
+  return Math.round(minSeconds + randomOffset);
+}
+
 function shouldFallbackToAuthHealth(
   config: KeepaliveConfig,
   result: KeepaliveExecutionResult
@@ -64,13 +107,14 @@ function shouldFallbackToAuthHealth(
     /(ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|fetch failed)/i.test(
       result.error
     );
+  const isDefaultSupabaseRestEndpoint =
+    !!normalizedSupabaseRest && normalizedEndpoint === normalizedSupabaseRest;
 
   return (
     !!config.supabase_url &&
-    (!config.service_role_key_encrypted &&
-      normalizedEndpoint === normalizedSupabaseRest &&
-      result.statusCode === 401) ||
-      isNetworkFailure
+    isDefaultSupabaseRestEndpoint &&
+    ((!config.service_role_key_encrypted && result.statusCode === 401) ||
+      isNetworkFailure)
   );
 }
 
@@ -162,6 +206,9 @@ export async function executeKeepalive(
       durationMs,
       responseExcerpt,
       success: response.ok,
+      error: response.ok
+        ? undefined
+        : `Endpoint responded with HTTP ${response.status}`,
     };
   } catch (err) {
     const durationMs = Date.now() - startTime;
@@ -294,8 +341,8 @@ export function toKeepaliveResult(
 }
 
 /**
- * Checks if a config is due for execution based on its interval
- * with random jitter (±20% of the interval).
+ * Checks if a config is due for execution based on a deterministic random
+ * interval per config and last attempt, capped at four hours.
  *
  * Configs without a last_attempt_at are always considered due.
  */
@@ -303,8 +350,7 @@ export function isConfigDue(config: KeepaliveConfig): boolean {
   if (!config.last_attempt_at) return true;
 
   const lastAttempt = new Date(config.last_attempt_at).getTime();
-  const intervalMs = config.interval_seconds * 1000;
-  const jitter = intervalMs * 0.2 * (Math.random() * 2 - 1);
+  const intervalMs = getKeepaliveDueIntervalSeconds(config) * 1000;
 
-  return Date.now() - lastAttempt >= intervalMs + jitter;
+  return Date.now() - lastAttempt >= intervalMs;
 }

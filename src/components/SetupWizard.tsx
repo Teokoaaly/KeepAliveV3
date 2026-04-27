@@ -76,7 +76,7 @@ export function SetupWizard() {
     keepaliveMethod: "GET",
     keepaliveHeaders: "{}",
     keepaliveBody: "",
-    intervalSeconds: 300,
+    intervalSeconds: 14400,
     vercelToken: "",
     vercelTeamId: "",
   })
@@ -177,7 +177,7 @@ export function SetupWizard() {
             return false
           }
         }
-        if (data.intervalSeconds < 60) {
+        if (data.intervalSeconds < 60 || data.intervalSeconds > 14400) {
           setError(t("intervalMin"))
           return false
         }
@@ -512,10 +512,11 @@ export function SetupWizard() {
                   onChange={(e) =>
                     updateField(
                       "intervalSeconds",
-                      parseInt(e.target.value) || 300
+                      parseInt(e.target.value) || 14400
                     )
                   }
                   className="font-mono"
+                  max={14400}
                 />
               </div>
             </div>
